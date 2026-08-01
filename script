@@ -1,0 +1,77 @@
+// Language toggle
+const langButtons=document.querySelectorAll('[data-lang-btn]');
+const html=document.documentElement;
+langButtons.forEach(btn=>{btn.addEventListener('click',()=>{const lang=btn.getAttribute('data-lang-btn');html.setAttribute('data-lang',lang);html.setAttribute('lang',lang);html.setAttribute('dir',lang==='ar'?'rtl':'ltr');langButtons.forEach(b=>b.classList.remove('active'));btn.classList.add('active');try{localStorage.setItem('sbj-lang',lang)}catch(e){}})});
+try{const saved=localStorage.getItem('sbj-lang');if(saved==='ar'||saved==='en'){html.setAttribute('data-lang',saved);html.setAttribute('lang',saved);html.setAttribute('dir',saved==='ar'?'rtl':'ltr');langButtons.forEach(b=>b.classList.toggle('active',b.getAttribute('data-lang-btn')===saved))}}catch(e){}
+ 
+// Enable JS-based scroll animations (removes CSS fallback that shows everything)
+if('IntersectionObserver' in window){
+  document.documentElement.classList.add('js-anim');
+  
+  // Immediately mark elements ABOVE the fold as visible (no animation needed)
+  const preRevealAboveFold=()=>{
+    document.querySelectorAll('.reveal, .reveal-item').forEach(el=>{
+      const rect=el.getBoundingClientRect();
+      if(rect.top<window.innerHeight*0.9){
+        el.classList.add('visible');
+      }
+    });
+  };
+  preRevealAboveFold();
+ 
+  // Smooth scroll reveal for below-fold elements
+  const observer=new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        entry.target.classList.add('visible');
+        const items=entry.target.querySelectorAll('.reveal-item');
+        items.forEach((el,i)=>{
+          setTimeout(()=>el.classList.add('visible'),i*100);
+        });
+        observer.unobserve(entry.target);
+      }
+    });
+  },{threshold:.08,rootMargin:'0px 0px -40px 0px'});
+  document.querySelectorAll('.reveal:not(.visible)').forEach(el=>observer.observe(el));
+ 
+  const itemObserver=new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        entry.target.classList.add('visible');
+        itemObserver.unobserve(entry.target);
+      }
+    });
+  },{threshold:.1,rootMargin:'0px 0px -20px 0px'});
+  document.querySelectorAll('.reveal-item:not(.visible)').forEach(el=>{
+    if(!el.closest('.reveal')) itemObserver.observe(el);
+  });
+ 
+  // SAFETY NET: After 3 seconds, force-show anything still hidden
+  setTimeout(()=>{
+    document.querySelectorAll('.reveal:not(.visible), .reveal-item:not(.visible)').forEach(el=>{
+      el.classList.add('visible');
+    });
+  },3000);
+}
+ 
+// Smooth anchor scroll
+document.querySelectorAll('a[href^="#"]').forEach(link=>{link.addEventListener('click',(e)=>{const href=link.getAttribute('href');if(href==='#'||href.length<2)return;const target=document.querySelector(href);if(target){e.preventDefault();target.scrollIntoView({behavior:'smooth',block:'start'})}})});
+ 
+// Quantity picker (product pages)
+document.querySelectorAll('.qty-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const val=btn.parentElement.querySelector('.qty-val');
+    let n=parseInt(val.textContent);
+    if(btn.dataset.action==='inc') n++;
+    else if(n>1) n--;
+    val.textContent=n;
+  });
+});
+ 
+// FAQ toggle
+document.querySelectorAll('.faq-item').forEach(item=>{item.addEventListener('click',()=>item.classList.toggle('open'))});
+ 
+
+
+
+
